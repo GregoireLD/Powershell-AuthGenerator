@@ -1,20 +1,12 @@
 ﻿<#
 .Synopsis
   Generate an 80-bit key, BASE32 encoded, secret
-  and a URL to Google Charts which will show it as a QR code.
-  The QR code can be used with the Google Authenticator app
-.Example
-  PS C:\> New-AuthenticatorSecret
-  Secret           QrCodeUri                                                                                          
-  ------           ---------                                                                                          
-  5WYYADYB5DK2BIOV http://chart.apis.google[..]
-.Example
-  PS C:\> New-AuthenticatorSecret -Online
-  # *web browser opens*
+  and a URI to be encoded as a QR code for Google Authenticator compliant applications.
+  The QR code can be used with Google Authenticator, BitWarden...
 .Example
   # Take a secret code from a real website,
   # but put your own text around it to show in the app
-  PS C:\> New-AuthenticatorSecret -UseThisSecretCode HP44SIFI2GFDZHT6 -Name "me@example.com" -Issuer "My bank 💎" -Online | fl *
+  PS C:\> New-AuthenticatorSecret -UseThisSecretCode HP44SIFI2GFDZHT6 -Name "me@example.com" -Issuer "My bank" -Online | fl *
   Secret    : HP44SIFI2GFDZHT6
   KeyUri    : otpauth://totp/me%40example.com?secret=HP44SIFI2GFDZHT6&issuer=My%20bank%20%F0%9F%92%8E
   # web browser opens, and you can scan your bank code into the app, with new text around it.
@@ -113,11 +105,6 @@ function New-AuthenticatorSecret
         KeyPeriod = $period
         KeyAlgorithm = $algorithm
         DigitsSize = $digits
-    }
-
-    # Online switch references Get-Help -Online and launches a system WebBrowser.
-    if ($Online) {
-        Start-Process $keyDetails.QrCodeUri
     }
 
     $keyDetails
