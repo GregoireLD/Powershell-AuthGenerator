@@ -213,7 +213,7 @@ function Get-AuthenticatorPin
     # remainder of dividing by 10 to the power of <Numbers of Digits>
     # pad to <Numbers of Digits> digits with leading zero(s)
     # and put a space in the middle for better readability
-    $PIN = ($num % ([math]::Pow(10,$digits))).ToString().PadLeft($digits, '0')
+    [string] $PIN = ($num % ([math]::Pow(10,$digits))).ToString().PadLeft($digits, '0')
 
     if(-not $MakeSpaceless)
     {
