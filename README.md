@@ -2,6 +2,9 @@
 
 Powershell Implementation of Google Authenticator Protocol
 
+This implementation was inspired by HumanEquivalentUnit implementation :
+https://github.com/HumanEquivalentUnit
+
 To use this module, the "Powershell-AuthGenerator" folder, contaning both the psm1
 and the psd1 files, must be in one of your default Powershell Modules folder.
 You can check what they are using :
