@@ -217,7 +217,7 @@ function Get-AuthenticatorPin
 
     if(-not $MakeSpaceless)
     {
-        $PIN = $RawPIN.Insert($digits/2, ' ')
+        $PIN = $PIN.Insert($digits/2, ' ')
     }
 
     $outputPin = [PSCustomObject]@{
