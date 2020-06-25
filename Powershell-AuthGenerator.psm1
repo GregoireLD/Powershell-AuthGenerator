@@ -139,7 +139,10 @@ function Get-AuthenticatorPin
 
         # definis le nombre de chiffre dans l'OTP résultant, par défaut 6 chiffres
         # la norme permet également l'obtention d'OTP de 8 chiffres
-        [ValidateSet(6,8)][int32] $digits = 6
+        [ValidateSet(6,8)][int32] $digits = 6,
+
+        # Indique si la sortie doit éviter d'ajouter l'espace oa milieu du code
+        [switch] $MakeSpaceless = $false
     )
 
     $Script:Base32Charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'
@@ -176,12 +179,12 @@ function Get-AuthenticatorPin
     
     # Convert the time to a big-endian byte array
     $timeBytes = [BitConverter]::GetBytes([int64][math]::Floor($epochTime / $period))
-    if ([BitConverter]::IsLittleEndian) { 
+    if ([BitConverter]::IsLittleEndian)
+    {
         [array]::Reverse($timeBytes) 
     }
 
-    # Do the HMAC calculation with the default SHA1
-    # Google Authenticator app does support other hash algorithms, this code doesn't
+    # Perform the HMAC calculation with the specified hash algorithm
     Switch ($algorithm)
     {
         "SHA512" {$hmacGen = [Security.Cryptography.HMACSHA512]::new($secretAsBytes)}
@@ -191,11 +194,8 @@ function Get-AuthenticatorPin
 
     $hash = $hmacGen.ComputeHash($timeBytes)
 
-
-    # The hash value is SHA1 size but we want a 6 digit PIN
+    # The hash value's size deprends of the hash algorithm but we want a 6 or 8 digit PIN
     # the TOTP protocol has a calculation to do that
-    #
-    # Google Authenticator app may support other PIN lengths, this code doesn't
     
     # take half the last byte
     $offset = $hash[$hash.Length-1] -band 0xF
@@ -212,12 +212,19 @@ function Get-AuthenticatorPin
     
     # remainder of dividing by 10 to the power of <Numbers of Digits>
     # pad to <Numbers of Digits> digits with leading zero(s)
-    # and put a space for nice readability
-    $PIN = ($num % ([math]::Pow(10,$digits))).ToString().PadLeft($digits, '0').Insert($digits/2, ' ')
+    # and put a space in the middle for better readability
+    $PIN = ($num % ([math]::Pow(10,$digits))).ToString().PadLeft($digits, '0')
 
-    [PSCustomObject]@{
+    if(-not $MakeSpaceless)
+    {
+        $PIN = $RawPIN.Insert($digits/2, ' ')
+    }
+
+    $outputPin = [PSCustomObject]@{
         'PINCode' = $PIN
         'SecondsRemaining' = ($period - ($epochTime % $period))
     }
+
+    return $outputPin
 }
 
