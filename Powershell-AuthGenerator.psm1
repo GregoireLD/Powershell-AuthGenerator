@@ -142,7 +142,16 @@ function Get-AuthenticatorPin
         [ValidateSet(6,8)][int32] $digits = 6,
 
         # Indique si la sortie doit éviter d'ajouter l'espace oa milieu du code
-        [switch] $MakeSpaceless = $false
+        [switch] $MakeSpaceless = $false,
+
+        # Indique l'offset en secondes
+        [Int] $offset = 0,
+
+        # Indique le décalage de l'otp, -1 pour le code précédent, +1 pour le code suivant..
+        [Int] $shift = 0,
+
+        # Indique la date pour laquelle on souhaite obtenir l'otp
+        [DateTime] $dateTime
     )
 
     $Script:Base32Charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'
@@ -176,12 +185,18 @@ function Get-AuthenticatorPin
     # Unix epoch time in UTC and divide by the window time,
     # so the PIN won't change for that many seconds
     $epochTime = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
+    if($dateTime)
+    {
+        $epochTime = ([DateTimeOffset]$dateTime).ToUnixTimeSeconds()
+    }
+
+    $epochTime = $epochTime + $offset + ($period * $shift)
     
     # Convert the time to a big-endian byte array
     $timeBytes = [BitConverter]::GetBytes([int64][math]::Floor($epochTime / $period))
     if ([BitConverter]::IsLittleEndian)
     {
-        [array]::Reverse($timeBytes) 
+        [array]::Reverse($timeBytes)
     }
 
     # Perform the HMAC calculation with the specified hash algorithm
